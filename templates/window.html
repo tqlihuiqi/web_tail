@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="/static/js/xterm/xterm.js"></script>
+    <script src="/static/js/xterm/fit.js"></script>
+    <script src="/static/js/websocket/reconnecting-websocket.js"></script>
+    <script src="/static/js/jquery/jquery-2.1.4.min.js"></script>
+    <link rel="stylesheet" href="/static/css/bootstrap/bootstrap.css">
+    <link rel="stylesheet" href="/static/css/font-awesome/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/css/xterm/xterm.css">
+  </head>
+  
+  <body style="background-color: black">
+    <p>
+      <div style="margin: 10px">
+        <input id="filePath" style="width: 300px; height: 21px" type="text" />
+        <button id="watchFile" class="btn btn-success btn-xs"> Watch </button>
+        <button class="btn btn-default btn-xs pull-right" onclick="control('repeat')"> Repeat </button>
+        <button class="btn btn-default btn-xs pull-right" onclick="control('pause')"> Pause </button>
+        <button class="btn btn-default btn-xs pull-right" onclick="control('play')"> Play </button>
+      </div>
+    </p>
+    <div id="xterm-container" style="font-size: 14px; height: 94%; width: 100%; position: absolute;"></div>
+  </body>
+</html>
+
+<script>
+  // Initialization Xterm
+  var term = new Terminal();
+  term.open(document.getElementById("xterm-container"), focus=true);
+  term.fit();
+
+  window.onresize = function() {
+    term.fit();
+  };
+
+  var socket = null;
+
+  // Change the file to be watched
+  $("#watchFile").click(function(){
+    var filePath = $("#filePath").val();
+
+    if (!filePath) {
+      term.write("Log file cannot be empty.")
+      return 
+    }
+
+    if (socket != null){
+      socket.close()
+      socket = null
+    };
+
+    // Connect Websocket
+    socket = new ReconnectingWebSocket("ws://{{url}}/ws");
+
+    socket.onopen = function(event){
+      socket.send(JSON.stringify({"action": "watch", "filePath": filePath}))
+    };
+    
+    socket.onmessage = function(event) {
+      term.write(event.data);
+    };
+  
+    socket.onclose = function(event) {
+      term.reset();
+    };
+
+  });
+
+  // Change the current watching operation
+  function control(option) {
+    if (socket != null & socket.readyState == 1) {
+      socket.send(JSON.stringify({"action": "control", "option": option}));
+
+      if (option == "repeat") {
+        term.reset();
+      };
+    };
+  };
+
+</script>
