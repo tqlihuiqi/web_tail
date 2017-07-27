@@ -12,13 +12,13 @@ from tornado.websocket import WebSocketHandler, WebSocketClosedError
 class PageHandler(RequestHandler):
 
     def get(self):
-        """ Rendering templates/window.html """
+        """ Rendering templates/watch.html """
 
         host = self.settings["host"]
         port = self.settings["port"]
         url = "%s:%s" % (host, port)
 
-        self.render("window.html", url=url)
+        self.render("watch.html", url=url)
 
 
 class WsHandler(WebSocketHandler):

@@ -15,7 +15,7 @@ from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from tornado.web import Application
 
-from src.handler import PageHandler, WsHandler
+from handlers.watch import PageHandler, WsHandler
 
 
 class Server(Application):
